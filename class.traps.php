@@ -130,7 +130,9 @@ class traps {
             case 'delete_traps':
                 $this->delete_traps();
                 break;
-
+            case 'get_history_traps':
+                $this->getHistoryTraps();
+                break;
             default:
                 traps::writeXML('<error><![CDATA[ko | Service error]]></error>');
                 break;
@@ -229,11 +231,11 @@ class traps {
     }
 
 
-    public static function writeXML($string)
+    public static function writeXML($string,$debug=false)
     {
         $xml = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
         $xml .= $string;
-        echo $xml;
+        if ($debug): var_dump ($xml); else: echo $xml; endif;
     }
 
 //########################################################################################
@@ -361,7 +363,7 @@ class traps {
         $where = $this->getFilters();
         //echo $where;
         // utils::trace($_SESSION['user']['permissions']);
-        //if (in_array("D", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+        if (in_array("D", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
             $result = utils::DeleteTabella($tabella, $where);
             //echo $result;
             if ($result > 0) {
@@ -371,16 +373,73 @@ class traps {
                 traps::writeXML('<error><![CDATA[ko | trapola non cancellata]]></error>');
                 //echo "ko | user non cancellato";
             }
-        /*} else {
+        } else {
             traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
-        }*/
+        }
 
         $this->disconnect();
         exit();
     }
 
+    private function getHistoryTraps(){
+        $campi = array('  drth.date_detection,
+                          drtp.trap_id,
+                          drtp.trap_code,
+                          drtp.trap_name,
+                          drtp.address,
+                          drtp.citta,
+                          drtp.latitude,
+                          drtp.longitude,
+                          drtp.x,
+                          drtp.y,
+                          drth.segnale,
+                          drth.bait_type,
+                          drth.bait_consumption,
+                          drth.grams_putted,
+                          drtt.type_name,
+                          drtg.trap_group_name,
+                          drts.trap_state_name,
+                          drca.area_name,
+                          drca.area_address,
+                          drcs.customer_name,
+                          drth.mobile_user_id,
+                          drmu.username,
+                          drtp.notes');
+        $tabella = 'derat_database.dr_trap_history drth Join
+                      derat_database.dr_traps drtp On drth.trap_id = drtp.trap_id Left Join
+                      derat_database.dr_trap_type drtt On drtp.trap_type = drtt.id Left Join
+                      derat_database.dr_trap_groups drtg On drtp.trap_group_id = drtg.id Left Join
+                      derat_database.dr_trap_status drts On drtp.trap_status = drts.id Left Join
+                      derat_database.dr_covered_areas drca On drtp.covered_area_id = drca.id Left Join
+                      derat_database.dr_customers drcs On drtp.customer_id = drcs.id Left Join
+                      derat_database.dr_mobile_users drmu On drth.mobile_user_id = drmu.id';
+        $where = $this->getFilters();
+        $order = $this->getOrder();
+        $limit = $this->getLimit();
+        $records = 0;
+        $dati = array();
+        $this->connect();
+        utils::SelectTabelle($tabella, $campi, $where, $order, $limit, $records, $dati, false);
+        $this->disconnect();
+        if (count($dati)>0){
+            $stringData = "<traps found=\"" . count($dati) . "\">\n";
+            foreach ($dati as $record) {
+                $stringData .= "    <trap>\n";
+                foreach ($record as $campo => $valore) {
+                    $stringData .= "     <" . $campo . "><![CDATA[" . utils::clear_data($valore) . "]]></" . $campo . ">\n";
+                }
+                $stringData .= "    </trap>\n";
+            }
+            $stringData .= "</traps>\n";
+            traps::writeXML($stringData);
+        } else {
+            traps::writeXML('<message><![CDATA[no results]]></message>');
+        }
+    }
 
 
+
+// end class
 }
 
 

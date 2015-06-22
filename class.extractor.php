@@ -614,11 +614,16 @@ error_reporting(E_ERROR);
     }
 
 
-    public static function writeXML($string)
+    public static function writeXML($string,$debug=false)
     {
-        $xml = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-        $xml .= $string;
-        echo $xml;
+
+            $xml = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+            $xml .= $string;
+
+        if ($debug): var_dump ($xml); else: echo $xml; endif;
+
+
+
     }
 
 }
