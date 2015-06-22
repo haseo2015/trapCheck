@@ -334,7 +334,8 @@ error_reporting(E_ERROR);
             case 'mobileLogin':
             case 'centralLogout':
             case 'sistemLogout':
-            case 'retriveData':
+            case
+                'retriveData':
                     $this->switchPrimaryService($this->service);
                     break;
             default:
@@ -619,27 +620,6 @@ error_reporting(E_ERROR);
         $xml .= $string;
         echo $xml;
     }
-
-    public static function genericInsert($where,$what)
-    {
-        $result = utils::InsertTabella($where, $what);
-        extractor::writeXML('<message><![CDATA[ok | '.$result.' dati inseriti]]></message>');
-    }
-
-    public static function genericEdit($where,$what)
-    {
-        $condition = $this->getFilters();
-        $result = utils::UpdateTabella($where, $what, $condition);
-        extractor::writeXML('<message><![CDATA[ok | ' . $result . ' dati modificati]]></message>');
-    }
-
-    public static function genericDelete($where,$what)
-    {
-        $condition = $this->getFilters();
-        $result = utils::DeleteTabella($where, $condition);
-        extractor::writeXML('<message><![CDATA[ok | '.$result.' dati eliminati]]></message>');
-    }
-
 
 }
    
