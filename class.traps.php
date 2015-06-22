@@ -106,9 +106,7 @@ class traps {
 
     public function getService()
     {
-        if ($this->service == "retriveData"){
-            $this->getWhat();
-        } else if ($this->checkAuth()) {
+        if ($this->checkAuth()) {
             $this->switchOperationsService($this->service);
         } else {
             traps::writeXML('<error><![CDATA[session expired]]></error>');
@@ -242,8 +240,8 @@ class traps {
 // CRUD TRAPS
     private function getTrapsData(){
 
-        $campi = array('dr_traps.trap_id,
-                        dr_traps.trap_code,
+        $campi = array('dr_traps.id,
+                        dr_traps.trap_id,
                         dr_traps.trap_name,
                         dr_traps.customer_id,
                         dr_traps.address,
@@ -255,11 +253,13 @@ class traps {
                         dr_traps.product_id,
                         dr_traps.covered_area_id,
                         dr_traps.notes,
+                        dr_products.product_name,
                         dr_customers.customer_name,
                         dr_trap_type.type_name,
                         dr_trap_status.trap_state_name,
                         dr_trap_groups.trap_group_name');
         $tabella = 'dr_traps
+			        LEFT JOIN dr_products ON dr_traps.product_id = dr_products.id
         			LEFT JOIN dr_customers ON dr_traps.customer_id = dr_customers.id
                     LEFT JOIN dr_trap_type ON dr_traps.trap_type = dr_trap_type.id
                     LEFT JOIN dr_trap_status ON dr_traps.trap_status = dr_trap_status.id
@@ -284,7 +284,7 @@ class traps {
             $stringData .= "</traps>\n";
             traps::writeXML($stringData);
         } else {
-            traps::writeXML('<message><![CDATA[ no results]]><!</message>');
+            traps::writeXML('<message><![CDATA[no results]]></message>');
         }
     }
 

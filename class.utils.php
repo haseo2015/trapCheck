@@ -84,7 +84,6 @@ public static function trace($var,$file=__FILE__,$line=__LINE__,$function=__FUNC
 		echo "Linea:" . $line ."<br />";
 		switch($type){
 			case "array":
-			case "object":
 				print_r($var);
 			break;	
 			case "boolean":
@@ -346,10 +345,4 @@ public static function trace($var,$file=__FILE__,$line=__LINE__,$function=__FUNC
 		return $righe;
 
 	}
-
-
-
-
-
-
 }
