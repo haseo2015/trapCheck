@@ -566,22 +566,48 @@ error_reporting(E_ERROR);
             $this->filters = 'WHERE ';
             foreach ($filtersArray as $filterKey => $filterValue) {
                 //echo $filterKey . "----". strrpos($filterValue,'%')."<br>";
-                // controllo per campi LIKE
-                if ((strrpos($filterValue, '|') > 0)){
-                    //echo 1;
-                    $filter .= $filterKey . ' IN ('.str_replace("|",",",$filterValue).')';
-                } else if (strrpos($filterValue, '%') > 0) {
-                    //echo 2;
-                        $filter .= $filterKey . ' LIKE "' . $filterValue . '" AND ';
-                        $filter = substr($filter, 0, -4);
-                    } else {
-                    //echo 3;
-                        $filter .= $filterKey . '= "' . $filterValue . '" AND ';
-                        $filter = substr($filter, 0, -4);
-                    }
+                //echo $filterKey;
+                switch ($filterKey){
+                    case 'date_comp':
+                        //echo "data comparsion";
+                        $dataArray = (array) $filterValue;
+                        $dataValue = $dataArray[key($dataArray)];
+                        //utils::trace($dataArray);
 
+                        foreach ($dataArray as $dataKey => $data_value){
+                            $filter .= '('. $dataKey;
+                            if ((strrpos($data_value, '|') > 0)){
+                                //echo '2 date<br>';
+                                $_date = explode("|",$data_value);
+                                $filter .= ' BETWEEN "' . $_date[0] . '" AND "' . $_date[1] .'"';
+                            } else {
+                                //echo '1 data<br>';
+                                $filter .= ' => "' . $data_value .'"';
+                            }
+                            $filter .= ') AND ';
+                            //echo $filter;
+                        }
+                        $filter = substr($filter,0,-4);
+                        //echo $filter;
+
+                        break;
+                    default:
+                        // controllo multivalore (IN STATEMENT)
+                        if ((strrpos($filterValue, '|') > 0)){
+                            $filter .= $filterKey . ' IN ('.str_replace("|",",",$filterValue).')';
+                        } else
+                            // controllo per campi LIKE
+                            if (strrpos($filterValue, '%') > 0) {
+                                $filter .= $filterKey . ' LIKE "' . $filterValue . '" AND ';
+                                $filter = substr($filter, 0, -4);
+                            } else {
+                                $filter .= $filterKey . '= "' . $filterValue . '" AND ';
+                                $filter = substr($filter, 0, -4);
+                            }
+                        break;
+                }
             }
-           // $filter = substr($filter, 0, -4);
+            //echo $this->filters . $filter;
             return $this->filters . $filter;
         else:
             $this->filters = '';

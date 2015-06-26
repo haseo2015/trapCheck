@@ -133,6 +133,16 @@ class traps {
             case 'get_history_traps':
                 $this->getHistoryTraps();
                 break;
+            case 'create_data':
+                $this->generic_create();
+            break;
+            case 'edit_data':
+                $this->generic_edit();
+            break;
+            case 'delete_data':
+                $this->generic_delete();
+            break;
+
             default:
                 traps::writeXML('<error><![CDATA[ko | Service error]]></error>');
                 break;
@@ -179,24 +189,51 @@ class traps {
     {
         $filtersArray = (array)$this->token['filters'];
         $filter = "";
-        //traps::trace($filtersArray);
+        //utils::trace($filtersArray);
         if (count($filtersArray) > 0):
             $this->filters = 'WHERE ';
             foreach ($filtersArray as $filterKey => $filterValue) {
                 //echo $filterKey . "----". strrpos($filterValue,'%')."<br>";
-                // controllo multivalore (IN STATEMENT)
-                if ((strrpos($filterValue, '|') > 0)){
-                        $filter .= $filterKey . ' IN ('.str_replace("|",",",$filterValue).')';
-                } else
-                // controllo per campi LIKE
-                if (strrpos($filterValue, '%') > 0) {
-                    $filter .= $filterKey . ' LIKE "' . $filterValue . '" AND ';
-                    $filter = substr($filter, 0, -4);
-                } else {
-                    $filter .= $filterKey . '= "' . $filterValue . '" AND ';
-                    $filter = substr($filter, 0, -4);
-                }
+                //echo $filterKey;
+                switch ($filterKey){
+                    case 'date_comp':
+                    //echo "data comparsion";
+                    $dataArray = (array) $filterValue;
+                    $dataValue = $dataArray[key($dataArray)];
+                    //utils::trace($dataArray);
 
+                    foreach ($dataArray as $dataKey => $data_value){
+                        $filter .= '('. $dataKey;
+                        if ((strrpos($data_value, '|') > 0)){
+                            //echo '2 date<br>';
+                            $_date = explode("|",$data_value);
+                            $filter .= ' BETWEEN "' . $_date[0] . '" AND "' . $_date[1] .'"';
+                        } else {
+                            //echo '1 data<br>';
+                            $filter .= ' => "' . $data_value .'"';
+                        }
+                        $filter .= ') AND ';
+                        //echo $filter;
+                    }
+                    $filter = substr($filter,0,-4);
+                    //echo $filter;
+
+                    break;
+                    default:
+                    // controllo multivalore (IN STATEMENT)
+                    if ((strrpos($filterValue, '|') > 0)){
+                        $filter .= $filterKey . ' IN ('.str_replace("|",",",$filterValue).')';
+                    } else
+                        // controllo per campi LIKE
+                        if (strrpos($filterValue, '%') > 0) {
+                            $filter .= $filterKey . ' LIKE "' . $filterValue . '" AND ';
+                            $filter = substr($filter, 0, -4);
+                        } else {
+                            $filter .= $filterKey . '= "' . $filterValue . '" AND ';
+                            $filter = substr($filter, 0, -4);
+                        }
+                    break;
+                }
             }
             //echo $this->filters . $filter;
             return $this->filters . $filter;
@@ -241,9 +278,7 @@ class traps {
 //########################################################################################
 // CRUD TRAPS
     private function getTrapsData(){
-
-        $campi = array('dr_traps.id,
-                        dr_traps.trap_id,
+        $campi = array('dr_traps.trap_id,
                         dr_traps.trap_name,
                         dr_traps.customer_id,
                         dr_traps.address,
@@ -294,22 +329,17 @@ class traps {
 // campi obligatori: "customer_id":"", "address":"", "trap_type":"", "trap_status":"", "product_id":"", "covered_area_id":"", "trap_group_id":""
     private function create_traps()
     {
-        $this->connect();
         //utils::trace((array)$this->token['data']);
         $dati = (array)$this->token['data'];
-
-
         $_table = 'dr_traps';
         $tabella = $_table;
-
-        //if (in_array("C", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
-
+        if (in_array("C", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
         foreach ($dati as $record){
             $_dati = (array) $record;
             //utils::trace($_dati);
-
+            $this->connect();
             $result = utils::InsertTabella($tabella, $_dati);
-
+            $this->disconnect();
             if ($result > 0) {
                 traps::writeXML('<message><![CDATA[ok | trappola creata]]></message>');
             } else {
@@ -317,54 +347,46 @@ class traps {
             }
         }
 
+        } else {
+            traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
+        }
 
-        //} else {
-           // traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
-        //}
-        $this->disconnect();
     }
 
     private function edit_traps()
     {
-        $this->connect();
-        //utils::trace((array)$this->token['data']);
+
         $dati = (array)$this->token['data'];
-        //if (!empty($dati['pwd'])) $dati['pwd'] = md5($dati['pwd']);
-        //utils::trace($dati);
         $_table = 'dr_traps';
         $tabella = $_table;
         $campi = $dati;
         $where = $this->getFilters();
-        //echo $tabella;
-        //utils::trace($campi);
-        //echo $where;
         if (in_array("E", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+            $this->connect();
             $result = utils::UpdateTabella($tabella, $campi, $where);
+            $this->disconnect();
             //echo $result;
             if ($result > 0) {
                 traps::writeXML('<message><![CDATA[ok | '.$result.' trappole modificate]]></message>');
-                //echo "ok | user modificato";
             } else {
                 traps::writeXML('<error><![CDATA[ko | '.$result.' trappole non modificate   ]]></error>');
-                //echo "ko | user non modificato";
             }
         } else {
             traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
         }
-        $this->disconnect();
+
         exit();
     }
 
     private function delete_traps()
     {
-        $this->connect();
         $_table = 'dr_traps';
         $tabella = $_table;
         $where = $this->getFilters();
-        //echo $where;
-        // utils::trace($_SESSION['user']['permissions']);
         if (in_array("D", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+            $this->connect();
             $result = utils::DeleteTabella($tabella, $where);
+            $this->disconnect();
             //echo $result;
             if ($result > 0) {
                 traps::writeXML('<message><![CDATA[ok | trappola/e cancellata/e]]></message>');
@@ -376,11 +398,10 @@ class traps {
         } else {
             traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
         }
-
-        $this->disconnect();
         exit();
     }
-
+//#######################################################################
+//######################## HISTORY TRAPS ################################
     private function getHistoryTraps(){
         $campi = array('  drth.date_detection,
                           drtp.trap_id,
@@ -437,7 +458,80 @@ class traps {
         }
     }
 
+//#######################################################################
+    private function generic_create()
+    {
+        //utils::trace((array)$this->token['data']);
+        $dati = (array)$this->token['data'];
+        $_table = 'dr_traps';
+        $tabella = $_table;
+        if (in_array("C", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+            foreach ($dati as $record){
+                $_dati = (array) $record;
+                //utils::trace($_dati);
+                $this->connect();
+                $result = utils::InsertTabella($tabella, $_dati);
+                $this->disconnect();
+                if ($result > 0) {
+                    traps::writeXML('<message><![CDATA[ok | trappola creata]]></message>');
+                } else {
+                    traps::writeXML('<error><![CDATA[ko | Errore creazione trapspola]]></error>');
+                }
+            }
 
+        } else {
+            traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
+        }
+
+    }
+
+    private function generic_edit()
+    {
+
+        $dati = (array)$this->token['data'];
+        $_table = 'dr_traps';
+        $tabella = $_table;
+        $campi = $dati;
+        $where = $this->getFilters();
+        if (in_array("E", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+            $this->connect();
+            $result = utils::UpdateTabella($tabella, $campi, $where);
+            $this->disconnect();
+            //echo $result;
+            if ($result > 0) {
+                traps::writeXML('<message><![CDATA[ok | '.$result.' trappole modificate]]></message>');
+            } else {
+                traps::writeXML('<error><![CDATA[ko | '.$result.' trappole non modificate   ]]></error>');
+            }
+        } else {
+            traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
+        }
+
+        exit();
+    }
+
+    private function generic_delete()
+    {
+        $dati = (array)$this->token['data'];
+        $tabella = $dati['tabella'];
+        $where = $this->getFilters();
+        //if (in_array("D", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+            $this->connect();
+            $result = utils::DeleteTabella($tabella, $where);
+            $this->disconnect();
+            //echo $result;
+            if ($result > 0) {
+                traps::writeXML('<message><![CDATA[ok | trappola/e cancellata/e]]></message>');
+                //echo "ok | user cancelato";
+            } else {
+                traps::writeXML('<error><![CDATA[ko | trapola non cancellata]]></error>');
+                //echo "ko | user non cancellato";
+            }
+        /*} else {
+            traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
+        }*/
+        exit();
+    }
 
 // end class
 }
