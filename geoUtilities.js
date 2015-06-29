@@ -37,7 +37,7 @@ function codeLatLng() {
                 });
                 map.setCenter(marker.getPosition());
                 infowindow.setContent(results[1].formatted_address);
-                infowindow.open(map, marker);
+                //infowindow.open(map, marker);
                $('#full_address').val(results[1].formatted_address);
             } else {
                 alert('No results found');

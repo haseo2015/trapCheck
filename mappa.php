@@ -17,8 +17,12 @@
   </head>
   <body>
   <div id="panel">
-    <input id="latlng" type="text" value="<?=$_GET['coords']?>"> <input id="full_address" type="text" value="" size="50">
-    <!-- <input type="button" value="Reverse Geocode" onclick="codeLatLng()"> -->
+    <input id="latlng" type="text" value="<?=$_GET['coords']?>">
+    <input id="full_address" type="text" value="" size="50">
+    <?php if(isset($_GET['service'])):?>
+      <input id="service" type="text" value="<?=(isset($_GET['service'])?$_GET['service'] : '')?>">
+    <input type="button" value="Reverse Geocode" onclick="codeLatLng()">
+    <?php endif; ?>
   </div>
     <div id="map-canvas"></div>
   </body>

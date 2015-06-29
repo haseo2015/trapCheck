@@ -36,16 +36,17 @@ class traps {
         if ($_SERVER['HTTP_HOST'] == 'localhost'):
             $this->dbuser="root";
             $this->dbpass="admin";
-            $this->dbname="derat_database";
+            //$this->dbname="derat_database";
+            $this->dbname="fabiomon_derat";
             $this->EXTdbuser = "derat_admin";
             $this->EXTdbpass = "123456";
             $this->EXTdbname = "derat_central_admin";
         else:
-            $this->dbuser="fabiomon_derat";
-            $this->dbpass="By7IWkC?gmvx";
+            $this->dbuser="fabiomon_drt";
+            $this->dbpass="CJ}N~wakR@b?";
             $this->dbname="fabiomon_derat";
-            $this->EXTdbuser = "fabiomon_derat";
-            $this->EXTdbpass = "By7IWkC?gmvx";
+            $this->EXTdbuser = "fabiomon_drt";
+            $this->EXTdbpass = "CJ}N~wakR@b?";
             $this->EXTdbname = "fabiomon_derat_central_admin";
         endif;
         $this->data = array();
@@ -133,6 +134,11 @@ class traps {
             case 'get_history_traps':
                 $this->getHistoryTraps();
                 break;
+                
+            case 'create_history':
+            	$this->create_record_history();
+            	break;
+                
             case 'create_data':
                 $this->generic_create();
             break;
@@ -210,7 +216,7 @@ class traps {
                             $filter .= ' BETWEEN "' . $_date[0] . '" AND "' . $_date[1] .'"';
                         } else {
                             //echo '1 data<br>';
-                            $filter .= ' => "' . $data_value .'"';
+                            $filter .= ' <= "' . $data_value .'"';
                         }
                         $filter .= ') AND ';
                         //echo $filter;
@@ -287,8 +293,11 @@ class traps {
                         dr_traps.longitude,
                         dr_traps.x,
                         dr_traps.y,
+                        dr_traps.trap_type,
+                        dr_traps.trap_status,
                         dr_traps.product_id,
                         dr_traps.covered_area_id,
+                        dr_traps.trap_group_id,
                         dr_traps.notes,
                         dr_products.product_name,
                         dr_customers.customer_name,
@@ -333,7 +342,7 @@ class traps {
         $dati = (array)$this->token['data'];
         $_table = 'dr_traps';
         $tabella = $_table;
-        if (in_array("C", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+       // if (in_array("C", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
         foreach ($dati as $record){
             $_dati = (array) $record;
             //utils::trace($_dati);
@@ -347,9 +356,9 @@ class traps {
             }
         }
 
-        } else {
+        /*} else {
             traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
-        }
+        }*/
 
     }
 
@@ -361,7 +370,7 @@ class traps {
         $tabella = $_table;
         $campi = $dati;
         $where = $this->getFilters();
-        if (in_array("E", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+        //if (in_array("E", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
             $this->connect();
             $result = utils::UpdateTabella($tabella, $campi, $where);
             $this->disconnect();
@@ -371,9 +380,9 @@ class traps {
             } else {
                 traps::writeXML('<error><![CDATA[ko | '.$result.' trappole non modificate   ]]></error>');
             }
-        } else {
+        /*} else {
             traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
-        }
+        }*/
 
         exit();
     }
@@ -383,7 +392,7 @@ class traps {
         $_table = 'dr_traps';
         $tabella = $_table;
         $where = $this->getFilters();
-        if (in_array("D", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+       // if (in_array("D", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
             $this->connect();
             $result = utils::DeleteTabella($tabella, $where);
             $this->disconnect();
@@ -395,45 +404,47 @@ class traps {
                 traps::writeXML('<error><![CDATA[ko | trapola non cancellata]]></error>');
                 //echo "ko | user non cancellato";
             }
-        } else {
+       /* } else {
             traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
-        }
+        }*/
         exit();
     }
 //#######################################################################
 //######################## HISTORY TRAPS ################################
     private function getHistoryTraps(){
-        $campi = array('  drth.date_detection,
-                          drtp.trap_id,
-                          drtp.trap_code,
-                          drtp.trap_name,
-                          drtp.address,
-                          drtp.citta,
-                          drtp.latitude,
-                          drtp.longitude,
-                          drtp.x,
-                          drtp.y,
-                          drth.segnale,
-                          drth.bait_type,
-                          drth.bait_consumption,
-                          drth.grams_putted,
-                          drtt.type_name,
-                          drtg.trap_group_name,
-                          drts.trap_state_name,
-                          drca.area_name,
-                          drca.area_address,
-                          drcs.customer_name,
-                          drth.mobile_user_id,
-                          drmu.username,
-                          drtp.notes');
-        $tabella = 'derat_database.dr_trap_history drth Join
-                      derat_database.dr_traps drtp On drth.trap_id = drtp.trap_id Left Join
-                      derat_database.dr_trap_type drtt On drtp.trap_type = drtt.id Left Join
-                      derat_database.dr_trap_groups drtg On drtp.trap_group_id = drtg.id Left Join
-                      derat_database.dr_trap_status drts On drtp.trap_status = drts.id Left Join
-                      derat_database.dr_covered_areas drca On drtp.covered_area_id = drca.id Left Join
-                      derat_database.dr_customers drcs On drtp.customer_id = drcs.id Left Join
-                      derat_database.dr_mobile_users drmu On drth.mobile_user_id = drmu.id';
+        $campi = array('  dr_trap_history.date_detection,
+                          dr_traps.trap_id,
+                          dr_traps.trap_name,
+                          dr_traps.address,
+                          dr_traps.citta,
+                          dr_traps.latitude,
+                          dr_traps.longitude,
+                          dr_traps.x,
+                          dr_traps.y,
+                          dr_trap_history.segnale,
+                          dr_trap_history.bait_status,
+                          dr_trap_history.bait_prodotto,
+                          dr_trap_history.bait_consumption,
+                          dr_trap_history.grams_putted,
+                          dr_trap_type.type_name,
+                          dr_trap_groups.trap_group_name,
+                          dr_trap_status.trap_state_name,
+                          dr_covered_areas.area_name,
+                          dr_covered_areas.area_address,
+                          dr_customers.customer_name,
+                          dr_trap_history.mobile_user_id,
+                          dr_mobile_users.username,
+                          dr_traps.notes');
+        $tabella = 'dr_trap_history LEFT JOIN 
+        			dr_traps ON dr_trap_history.trap_id = dr_traps.trap_id LEFT JOIN
+        			dr_trap_type ON dr_traps.trap_type = dr_trap_type.id LEFT JOIN
+                    dr_trap_groups ON dr_traps.trap_group_id = dr_trap_groups.id LEFT JOIN
+                    dr_trap_status ON dr_traps.trap_status = dr_trap_status.id LEFT JOIN
+                    dr_covered_areas ON dr_traps.covered_area_id = dr_covered_areas.id LEFT JOIN
+                    dr_customers ON dr_traps.customer_id = dr_customers.id LEFT JOIN
+                    dr_mobile_users ON dr_trap_history.mobile_user_id = dr_mobile_users.id';
+
+
         $where = $this->getFilters();
         $order = $this->getOrder();
         $limit = $this->getLimit();
@@ -458,6 +469,39 @@ class traps {
         }
     }
 
+
+
+
+	private function create_record_history()
+    {
+        //utils::trace((array)$this->token['data']);
+        $dati = (array)$this->token['data'];
+        $_table = 'dr_trap_history';
+        $tabella = $_table;
+      //  if (in_array("C", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+            foreach ($dati as $record){
+                $_dati = (array) $record;
+                //utils::trace($_dati);
+                $this->connect();
+                $result = utils::InsertTabella($tabella, $_dati);
+                $this->disconnect();
+                if ($result > 0) {
+                    traps::writeXML('<message><![CDATA[ok | storico creata]]></message>');
+                } else {
+                    traps::writeXML('<error><![CDATA[ko | Errore creazione storico]]></error>');
+                }
+            }
+
+       /* } else {
+            traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
+        } */
+
+    }
+
+
+
+
+
 //#######################################################################
     private function generic_create()
     {
@@ -465,7 +509,7 @@ class traps {
         $dati = (array)$this->token['data'];
         $_table = 'dr_traps';
         $tabella = $_table;
-        if (in_array("C", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+      //  if (in_array("C", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
             foreach ($dati as $record){
                 $_dati = (array) $record;
                 //utils::trace($_dati);
@@ -479,9 +523,9 @@ class traps {
                 }
             }
 
-        } else {
+       /* } else {
             traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
-        }
+        } */
 
     }
 
@@ -493,7 +537,7 @@ class traps {
         $tabella = $_table;
         $campi = $dati;
         $where = $this->getFilters();
-        if (in_array("E", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
+       // if (in_array("E", $_SESSION['user']['permissions']) or in_array("*", $_SESSION['user']['permissions']) or $_SESSION['customer']['auth'] === true) {
             $this->connect();
             $result = utils::UpdateTabella($tabella, $campi, $where);
             $this->disconnect();
@@ -503,9 +547,9 @@ class traps {
             } else {
                 traps::writeXML('<error><![CDATA[ko | '.$result.' trappole non modificate   ]]></error>');
             }
-        } else {
+       /* } else {
             traps::writeXML('<error><![CDATA[ko | no privileges]]></error>');
-        }
+        }*/
 
         exit();
     }
