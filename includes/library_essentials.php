@@ -107,7 +107,7 @@ function getLastDayOfMonth($month){
 //##############################################################################
 // function UpdateQueryString
 // aggiorna il campo $campo della QUERY_STRING 
-// se $valore non è passato elimina il campo dalla query_string
+// se $valore non ï¿½ passato elimina il campo dalla query_string
 //
 function UpdateQueryString($campo,$valore=NULL){
 	$qs = $_SERVER['QUERY_STRING'];
@@ -141,7 +141,7 @@ function UpdateQueryString($campo,$valore=NULL){
 // #########################################################################
 // function UpdateQueryStringArr
 // aggiorna i campi $campi della QUERY_STRING 
-// se $valori[$campo] non è passato elimina il campo dalla query_string
+// se $valori[$campo] non ï¿½ passato elimina il campo dalla query_string
 //
 function UpdateQueryStringArr($campi,$valori=array()){
 	foreach($campi as $campo){
@@ -168,7 +168,7 @@ function conformaNome(&$nome) {
 function fileNameReplace( $nomeFile, $cerca = '', $sostituisci = ''){
 	if ( !$cerca ){
 		// simboli da rimpiazzare di default
-		$cerca = array (" ","--","ú","ù","û","ü","á","à","ä","ã","å","è","é","ê","ë","í","ì","î","ï","ò","ó","ô","ö","õ","ß","æ","ç","ñ","ÿ","ý","&");
+		$cerca = array (" ","--","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","ï¿½","&");
 		$sostituisci = array ("-","-","u","u","u","u","a","a","a","a","a","e","e","e","e","i","i","i","i","o","o","o","o","o","ss","ae","c","n","y","y","-e-");
 	}
 	// sostituisce i chars da rimpiazzare
@@ -312,7 +312,7 @@ if ($debugmode) utils::trace("<br />$funzione q:<br />". $q_insert . "<br/><br /
 //echo "constante_err: ". ER_DUP_ENTRY . "<br/>";
 //echo "</pre>";
 	//
-	// se una chiave univoca esisteva già lascio 
+	// se una chiave univoca esisteva giï¿½ lascio 
 	// al chiamante la gestione dell'errore
 	if((mysql_errno() != 0) && (mysql_errno() != ER_DUP_ENTRY)) {
 	       die(_MSG_ERRORE_FATALE_1_ .":<br />Funzione:". __FUNCTION__ . "<br />Linea:" . __LINE__ ."<br />File:". __FILE__ ."<br />QUERY:" .$q_insert . "<br />Errore: ". mysql_error());
@@ -463,8 +463,8 @@ function CreaId($dati,$chiave){
 
 // function isImgToUpload()
 // prende in input il nome di un campo di tipo file da uploadare e  restituisce:
-// 	False se non è una img
-// 	True se è un immagine 
+// 	False se non ï¿½ una img
+// 	True se ï¿½ un immagine 
 // 	se passato carica un messaggio di errore
 //
 function isImgToUpload($image_file_to_upload, &$error = NULL) {
@@ -705,7 +705,7 @@ function detectSubDomain($ref){
 }
 
 //generaFileExcellOnFly 
-// genera file excell al volo da un'array di dati
+// genera file excel al volo da un'array di dati
 function generaFileExcellOnFly($dati,$categoria=''){
 	
 	$filename="prova.xls";	
@@ -748,7 +748,7 @@ function generaFileExcellOnFly($dati,$categoria=''){
 }
 
 //generaFileExcellOnFly 
-// genera file excell al volo da un'array di dati
+// genera file excel al volo da un'array di dati
 function generaFileExcell($tabella,$campi="*",$where_cond="",$order_by="",$limit="",$num_record=-1){
 	//trace($dati);
 	$dati = array();
